@@ -9,7 +9,8 @@ from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import Select
-
+from captcha_solver import solve_captcha
+from selenium.common.exceptions import NoAlertPresentException
 
 def initialize_browser():
     chrome_options = Options()
@@ -43,6 +44,56 @@ def search_open_tenders(browser):
         )
         select = Select(tender_type_dropdown)
         select.select_by_visible_text("Open Tender")
+
+        MAX_ATTEMPTS = 10
+        attempts = 0
+
+        while attempts < MAX_ATTEMPTS:
+            attempts += 1
+            print(f"[Attempt {attempts}] Solving CAPTCHA...")
+
+            # Click the refresh button to get a new CAPTCHA
+            try:
+                refresh_button = WebDriverWait(browser, 5).until(
+                    EC.element_to_be_clickable((By.ID, "captcha"))
+                )
+                refresh_button.click()
+                time.sleep(1)  # Allow time for new image to load
+            except Exception as e:
+                print("[!] Failed to click CAPTCHA refresh button:", e)
+                break
+
+            # Solve the CAPTCHA
+            captcha_element = WebDriverWait(browser, 10).until(
+                EC.presence_of_element_located((By.ID, "captchaImage")) 
+            )
+            captcha_text = solve_captcha(browser, captcha_element)
+            print(f"[✓] CAPTCHA text: '{captcha_text}'")
+            # Check if CAPTCHA text length is valid
+            if len(captcha_text.strip()) < 6:
+                print(f"[!] CAPTCHA too short ('{captcha_text}'). Retrying...")
+                continue
+
+            # Fill CAPTCHA input
+            captcha_input = browser.find_element(By.ID, "captchaText")
+            captcha_input.clear()
+            captcha_input.send_keys(captcha_text)
+
+            # Click Search button
+            search_button = browser.find_element(By.ID, "submit")
+            search_button.click()
+            time.sleep(2)
+
+            # Check for error message (instead of relying on alert)
+            try:
+                error_element = browser.find_element(
+                    By.XPATH, "//td[@class='alerttext']//b[contains(text(),'Invalid Captcha')]"
+                )
+                print("[!] Invalid CAPTCHA detected. Retrying...")
+                continue
+            except:
+                print("[✓] CAPTCHA accepted.")
+                break
 
 
         
