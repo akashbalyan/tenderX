@@ -12,6 +12,8 @@ from selenium.webdriver.support.ui import Select
 from captcha_solver import solve_captcha
 from selenium.common.exceptions import NoAlertPresentException
 
+from urllib.parse import urljoin
+
 def initialize_browser():
     chrome_options = Options()
     #chrome_options.add_argument("--headless")  # Optional: run in headless mode
@@ -67,7 +69,10 @@ def search_open_tenders(browser):
             captcha_element = WebDriverWait(browser, 10).until(
                 EC.presence_of_element_located((By.ID, "captchaImage")) 
             )
-            captcha_text = solve_captcha(browser, captcha_element)
+            #captcha_text = solve_captcha(browser, captcha_element)
+            # For testing purposes, we will use manual input
+            captcha_text = input("[🧑‍💻] Enter CAPTCHA manually as seen in the browser: ")
+
             print(f"[✓] CAPTCHA text: '{captcha_text}'")
             # Check if CAPTCHA text length is valid
             if len(captcha_text.strip()) < 6:
@@ -103,12 +108,67 @@ def search_open_tenders(browser):
         print(f"Error during search: {e}")
 
 
+def extract_all_tender_links(browser):
+    """
+    Extracts all tender detail links from paginated results.
+    Returns a list of full tender URLs.
+    """
+    base_url = "https://eprocure.gov.in"
+    tender_links = []
+    MAX_PAGES = 21
+    current_page = 0
+
+    while current_page < MAX_PAGES:
+        try:
+            # Wait until at least one tender link is present
+            WebDriverWait(browser, 10).until(
+                EC.presence_of_element_located((By.XPATH, "//td/a[contains(@title, 'View Tender Information')]"))
+            )
+
+            # Get all anchor tags inside <td> with matching title
+            link_elements = browser.find_elements(By.XPATH, "//td/a[contains(@title, 'View Tender Information')]")
+
+            for link in link_elements:
+                relative_href = link.get_attribute("href")
+                full_url = urljoin(base_url, relative_href)
+                tender_links.append(full_url)
+
+            print(f"[Page {current_page}] Found {len(link_elements)} links.")
+
+            if current_page == MAX_PAGES:
+                break  # Stop if we've reached max allowed pages
+
+            # Try to go to the next page if available
+            next_button = browser.find_element(By.ID, "linkFwd")
+            if "disabled" in next_button.get_attribute("class").lower():
+                break
+
+            next_button.click()
+            #next_page = current_page + 1
+            #WebDriverWait(browser, 10).until(
+            #EC.text_to_be_present_in_element((By.XPATH, '//*[@id="informal_19"]/b'), str(next_page)))
+            time.sleep(2)  # Wait for the next page to load
+
+
+            current_page += 1h
+            
+        except Exception as e:
+            print(f"No more pages or error: {e}")
+            break
+
+    return tender_links
+
 
 
 if __name__ == "__main__":
     browser = initialize_browser()
     open_website(browser)
     search_open_tenders(browser)
+    tender_links = extract_all_tender_links(browser)
     
+    print(f"\nTotal tenders found: {len(tender_links)}")
+    for i, link in enumerate(tender_links, start=1):
+        print(f"{i}. {link}")
+
     input("Press Enter to close browser...")
     browser.quit()
