@@ -3,7 +3,7 @@ import time
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-
+from storage.s3_uploader import upload_to_s3
 from captcha_solver import solve_captcha
 
 
@@ -114,6 +114,9 @@ def process_tenders(browser, tender_links):
 
                 zip_file_path = wait_for_zip_file(download_dir)
                 print(f"[📦] Downloaded file path: {zip_file_path}")
+
+                upload_to_s3(zip_file_path, tender_id)
+                print(f"[✅] Uploaded {zip_file_path} to S3 with ID: {tender_id}")
 
             except Exception as e:
                 print(f"No 'Download as Zip' link found or captcha solving failed: {e}")

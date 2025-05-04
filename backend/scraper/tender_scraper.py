@@ -173,24 +173,34 @@ def extract_all_tender_links(browser):
     return tender_links
 
 
-if __name__ == "__main__":
+def main_function():
+    # Initialize the browser
     browser = initialize_browser()
+
+    # Open the website
     open_website(browser)
+
+    # Search for open tenders
     search_open_tenders(browser)
+
+    # Extract all tender links
     #tender_links = extract_all_tender_links(browser)
     tender_links = [
     "https://etenders.gov.in/eprocure/app?component=%24DirectLink_0&page=FrontEndAdvancedSearchResult&service=direct&session=T&sp=SJF6CyWn8RggyMYtNn0%2BHhw%3D%3D",
     "https://etenders.gov.in/eprocure/app?component=%24DirectLink_0&page=FrontEndAdvancedSearchResult&service=direct&session=T&sp=SBxt1NZPECd9xxZB8ZLBoZw%3D%3D",
     "https://etenders.gov.in/eprocure/app?component=%24DirectLink_0&page=FrontEndAdvancedSearchResult&service=direct&session=T&sp=SU7MPQbIeqQLOYxuhFyYBGA%3D%3D",
     "https://etenders.gov.in/eprocure/app?component=%24DirectLink_0&page=FrontEndAdvancedSearchResult&service=direct&session=T&sp=SWrhuhHbz4IM55Ys06%2FezHQ%3D%3D"
-]
+    ]
 
     print(f"\nTotal tenders found: {len(tender_links)}")
     for i, link in enumerate(tender_links, start=1):
         print(f"{i}. {link}")
-    
-    
+
+    # Process the tenders
     process_tenders(browser, tender_links)
 
     input("Press Enter to close browser...")
     browser.quit()
+
+if __name__ == "__main__":
+    main_function()
