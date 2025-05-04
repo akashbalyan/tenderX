@@ -5,6 +5,7 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from storage.s3_uploader import upload_to_s3
 from captcha_solver import solve_captcha
+from storage.db import insert_tender_record
 
 
 def process_tenders(browser, tender_links):
@@ -112,11 +113,31 @@ def process_tenders(browser, tender_links):
                 # OPTIONAL: wait for file to appear in downloads
                 time.sleep(5)  # or use logic to confirm file is downloaded
 
-                zip_file_path = wait_for_zip_file(download_dir)
-                print(f"[📦] Downloaded file path: {zip_file_path}")
+                try:
+                    zip_file_path = wait_for_zip_file(download_dir)
+                    print(f"[📦] Downloaded file path: {zip_file_path}")
+                except Exception as e:
+                    print(f"[❌] Failed to download ZIP file: {e}")
+                    zip_file_path = None
 
-                upload_to_s3(zip_file_path, tender_id)
-                print(f"[✅] Uploaded {zip_file_path} to S3 with ID: {tender_id}")
+                if zip_file_path:
+                    try:
+                        s3_url = upload_to_s3(zip_file_path, tender_id)
+                        if s3_url:
+                            print(f"[✅] Uploaded {zip_file_path} to S3 with ID: {tender_id}")
+                        else:
+                            raise Exception("upload_to_s3 returned None")
+                    except Exception as e:
+                        print(f"[❌] Failed to upload ZIP to S3: {e}")
+                        s3_url = None
+
+                    if s3_url:
+                        try:
+                            insert_tender_record(tender_id, s3_url)
+                            print(f"[💾] Saved record to Supabase DB for ID: {tender_id}")
+                        except Exception as e:
+                            print(f"[❌] Failed to insert record into Supabase: {e}")
+
 
             except Exception as e:
                 print(f"No 'Download as Zip' link found or captcha solving failed: {e}")
