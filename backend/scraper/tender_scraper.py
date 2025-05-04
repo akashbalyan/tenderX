@@ -1,4 +1,5 @@
 import time
+import os
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.chrome.options import Options
@@ -13,12 +14,25 @@ from captcha_solver import solve_captcha
 from selenium.common.exceptions import NoAlertPresentException
 
 from urllib.parse import urljoin
+from downloader import process_tenders
 
 def initialize_browser():
     chrome_options = Options()
     #chrome_options.add_argument("--headless")  # Optional: run in headless mode
     chrome_options.add_argument("--disable-gpu")
     chrome_options.add_argument("--no-sandbox")
+    
+    # Set up download directory
+    download_dir = os.path.join(os.getcwd(), "downloads")
+    os.makedirs(download_dir, exist_ok=True)
+
+    prefs = {
+        "download.default_directory": download_dir,
+        "download.prompt_for_download": False,
+        "download.directory_upgrade": True,
+        "safebrowsing.enabled": True
+    }
+    chrome_options.add_experimental_option("prefs", prefs)
 
     # Correct way to use ChromeDriverManager with Service
     service = Service(ChromeDriverManager().install())
@@ -115,7 +129,7 @@ def extract_all_tender_links(browser):
     """
     base_url = "https://eprocure.gov.in"
     tender_links = []
-    MAX_PAGES = 21
+    MAX_PAGES = 1 # Set to 1 for testing; change to a higher number for full scraping
     current_page = 0
 
     while current_page < MAX_PAGES:
@@ -150,7 +164,7 @@ def extract_all_tender_links(browser):
             time.sleep(2)  # Wait for the next page to load
 
 
-            current_page += 1h
+            current_page += 1
             
         except Exception as e:
             print(f"No more pages or error: {e}")
@@ -159,16 +173,24 @@ def extract_all_tender_links(browser):
     return tender_links
 
 
-
 if __name__ == "__main__":
     browser = initialize_browser()
     open_website(browser)
     search_open_tenders(browser)
-    tender_links = extract_all_tender_links(browser)
-    
+    #tender_links = extract_all_tender_links(browser)
+    tender_links = [
+    "https://etenders.gov.in/eprocure/app?component=%24DirectLink_0&page=FrontEndAdvancedSearchResult&service=direct&session=T&sp=SJF6CyWn8RggyMYtNn0%2BHhw%3D%3D",
+    "https://etenders.gov.in/eprocure/app?component=%24DirectLink_0&page=FrontEndAdvancedSearchResult&service=direct&session=T&sp=SBxt1NZPECd9xxZB8ZLBoZw%3D%3D",
+    "https://etenders.gov.in/eprocure/app?component=%24DirectLink_0&page=FrontEndAdvancedSearchResult&service=direct&session=T&sp=SU7MPQbIeqQLOYxuhFyYBGA%3D%3D",
+    "https://etenders.gov.in/eprocure/app?component=%24DirectLink_0&page=FrontEndAdvancedSearchResult&service=direct&session=T&sp=SWrhuhHbz4IM55Ys06%2FezHQ%3D%3D"
+]
+
     print(f"\nTotal tenders found: {len(tender_links)}")
     for i, link in enumerate(tender_links, start=1):
         print(f"{i}. {link}")
+    
+    
+    process_tenders(browser, tender_links)
 
     input("Press Enter to close browser...")
     browser.quit()

@@ -60,3 +60,6 @@ docker-compose.override.yml
 # --- Captcha Images ---
 backend/scraper/captcha_original.png
 backend/scraper/captcha_processed.png
+
+# --- Zip Downloads ---
+backend/scraper/zip_downloads/*
