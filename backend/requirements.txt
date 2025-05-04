@@ -6,3 +6,7 @@ webdriver-manager
 boto3
 python-dotenv
 supabase
+
+fastapi
+uvicorn 
+psycopg2-binary 
