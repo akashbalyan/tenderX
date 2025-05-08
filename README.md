@@ -21,16 +21,20 @@ TenderX is an automated tender scraping and management system that fetches open 
 ## Screenshots
 
 ### 1. Government Portal - List of Tenders  
-<img src="assets/readmeImages/gov-portal.png" alt="Government eProcurement Portal" width="500" height="300">  
+<img src="assets/readmeImages/gov-portal.png" alt="Government eProcurement Portal" width="300" height="150">  
 
 ### 2. AWS S3 Bucket - Uploaded Tender Documents  
-<img src="assets/readmeImages/aws-bucket.png" alt="AWS S3 Bucket" width="500" height="300">  
+<img src="assets/readmeImages/aws-bucket.png" alt="AWS S3 Bucket" width="300" height="150">  
 
 ### 3. React UI - Displaying Tender Metadata  
-<img src="assets/readmeImages/react-ui.png" alt="React UI - Tender List" width="500" height="300">  
+<img src="assets/readmeImages/react-ui.png" alt="React UI - Tender List" width="300" height="150">  
 
+## Demo Video  
 
----
+<a href="https://youtu.be/DywmrZDspVA" target="_blank">
+  <img src="https://img.youtube.com/vi/DywmrZDspVA/0.jpg" alt="Demo Video" width="300" height="150">
+</a>
+
 
 ## Tech Stack  
 - Python, Selenium, Tesseract OCR
@@ -38,7 +42,6 @@ TenderX is an automated tender scraping and management system that fetches open 
 - AWS S3, PostgreSQL (Supabase)  
 - Flask (UI), Cron, Docker 
 
----
 
 ## Note  
 This project was developed as part of an engineering assignment. It focuses on building an extensible and maintainable scraping pipeline with robust exception handling.
